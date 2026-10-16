@@ -370,15 +370,14 @@ index 702a95c..8cb02bf 100644
    shorttics = !shorttics;
    if (shorttics) {
 diff --git a/src/m_menu.c b/src/m_menu.c
-index 1987bf5..8d49e42 100644
+index 1987bf5..79d6f64 100644
 --- a/src/m_menu.c
 +++ b/src/m_menu.c
-@@ -654,23 +654,23 @@ enum
+@@ -654,23 +654,21 @@ enum
  
  // The definitions of the New Game menu
  
-+// LYMPHODOOM: three skills (COMMON COLD / FEVER / METASTASIS) mapped to
-+// Doom's sk_easy / sk_medium / sk_hard.
++// LYMPHODOOM: two skills, COMMON COLD (sk_easy) and METASTASIS (sk_hard).
  menuitem_t NewGameMenu[]=
  {
 -  {1,"M_JKILL", M_ChooseSkill, 'i'},
@@ -387,47 +386,67 @@ index 1987bf5..8d49e42 100644
 -  {1,"M_ULTRA", M_ChooseSkill, 'u'},
 -  {1,"M_NMARE", M_ChooseSkill, 'n'}
 +  {1,"M_ROUGH", M_ChooseSkill, 'c'},
-+  {1,"M_HURT",  M_ChooseSkill, 'f'},
 +  {1,"M_ULTRA", M_ChooseSkill, 'm'}
  };
  
  menu_t NewDef =
  {
 -  newg_end,       // # of menu items
-+  3,              // # of menu items
++  2,              // # of menu items
    &EpiDef,        // previous menu
    NewGameMenu,    // menuitem_t ->
    M_DrawNewGame,  // drawing routine ->
    48,63,          // x,y
 -  hurtme          // lastOn
-+  1               // lastOn
++  0               // lastOn
  };
  
  //
-@@ -737,6 +737,7 @@ static void M_VerifyNightmare(int ch)
+@@ -737,6 +735,7 @@ static void M_VerifyNightmare(int ch)
  
  void M_ChooseSkill(int choice)
  {
-+  choice += 1; // LYMPHODOOM: menu item 0 is sk_easy
++  choice = choice ? sk_hard : sk_easy; // LYMPHODOOM: two skills
    if (choice == nightmare)
      {   // Ty 03/27/98 - externalized
        M_StartMessage(s_NIGHTMARE,M_VerifyNightmare,true);
-@@ -6079,7 +6080,7 @@ void M_StartControlPanel (void)
+@@ -4904,7 +4903,7 @@ dboolean M_Responder (event_t* ev) {
+       return true;
+       }
+ 
+-    if (ch == key_help)      // Help key
++    if (0 && ch == key_help)      // Help key (LYMPHODOOM: off)
+       {
+       M_StartControlPanel ();
+ 
+@@ -6079,7 +6078,7 @@ void M_StartControlPanel (void)
    // Fix to make "always floating" with menu selections, and to always follow
    // defaultskill, instead of -skill.
  
 -  NewDef.lastOn = defaultskill - 1;
-+  NewDef.lastOn = defaultskill >= 2 && defaultskill <= 4 ? defaultskill - 2 : 1;
++  NewDef.lastOn = defaultskill >= 4 ? 1 : 0;
  
    // e6y
    // We need to remove the fourth episode for pre-ultimate complevels.
-@@ -6144,6 +6145,14 @@ void M_Drawer (void)
+@@ -6095,6 +6094,11 @@ void M_StartControlPanel (void)
+ 	  }
+   }
+ 
++  // LYMPHODOOM: the main menu is just "New Game" (no save/load, options, help or quit
++  // in a three-level browser game)
++  MainDef.numitems = 1;
++  MainDef.y = 84;
++
+   default_verify = 0;                  // killough 10/98
+   menuactive = mnact_float;
+   currentMenu = &MainDef;         // JDC
+@@ -6144,6 +6148,14 @@ void M_Drawer (void)
  
    menuactive = mnact_float; // Boom-style menu drawers will set mnact_full
  
-+  // LYMPHODOOM: on the title screen, menus get a clean background so their
++  // LYMPHODOOM: menus always get a clean background (also over the paused game) so their
 +  // titles never sit on top of the title picture's logo and characters
-+  if (gamestate == GS_DEMOSCREEN && W_CheckNumForName("M_MENUBG") >= 0)
++  if (W_CheckNumForName("M_MENUBG") >= 0)
 +  {
 +    V_FillBorder(-1, 0);
 +    V_DrawNamePatch(0, 0, 0, "M_MENUBG", CR_DEFAULT, VPT_STRETCH);
@@ -436,7 +455,7 @@ index 1987bf5..8d49e42 100644
    if (currentMenu->routine)
      currentMenu->routine();     // call Draw routine
  
-@@ -6485,7 +6494,9 @@ void M_Init(void)
+@@ -6485,7 +6497,9 @@ void M_Init(void)
  
      case shareware:
        // We need to remove the fourth episode.

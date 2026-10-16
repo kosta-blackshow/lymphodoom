@@ -31,8 +31,8 @@ The result is `web/game/index.{js,wasm,data}` plus `.gz` copies. Copy `web/` (wi
 `page.template.html`) to the site as `public_html/lymphodoom/`.
 
 Engine patches (`engine/lymphodoom.patch`, against Dwasm `ddf0347`): the IWAD is recognised as a
-registered Doom 1 episode; three skill levels; the body-map intermission (spots, no animations,
-a plain stats background); menus on the title screen get a clean background; UMAPINFO episodes
+registered Doom 1 episode; two skill levels and a one-item main menu (the page starts the game with `-skill 2|4 -warp 1 1`); no help, save/load, options or quit; the body-map intermission (spots, no animations,
+a plain stats background); menus get a clean background; UMAPINFO episodes
 are not trimmed; an `endpic` without `intertext` goes straight to the picture; cheat handlers share
 one signature so the build runs without `EMULATE_FUNCTION_POINTER_CASTS`.
 

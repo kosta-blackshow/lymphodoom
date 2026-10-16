@@ -32,4 +32,7 @@ cp "$D/build_wasm/index.js" "$D/build_wasm/index.wasm" "$D/build_wasm/index.data
 for f in "$ROOT"/web/game/index.js "$ROOT"/web/game/index.wasm "$ROOT"/web/game/index.data; do
   gzip -9 -n -k -f "$f"
 done
+# 4. page art and the RU/EN pages
+python3 "$ROOT/art/webart.py" "$ROOT/web"
+python3 "$ROOT/tools/page.py"
 ls -la "$ROOT/web/game"

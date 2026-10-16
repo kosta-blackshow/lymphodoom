@@ -72,51 +72,35 @@ a:hover { color: var(--white); }
 .screen.running img, .screen.running .start { display: none; }
 .screen.running canvas { display: block; }
 .start {
-  position: absolute; left: 50%; top: 21%; transform: translateX(-50%);
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  position: absolute; left: 50%; top: 23%; transform: translateX(-50%);
+  width: 47%;
+  display: flex; flex-direction: column; align-items: center; gap: 4%;
 }
-button.play {
-  font: inherit; font-weight: 500; font-size: 22px; letter-spacing: 0.02em;
-  color: #000; background: var(--rim);
-  border: 0; padding: 14px 34px 13px;
-  box-shadow: 0 0 0 3px #000, 6px 6px 0 3px #000;
-  cursor: pointer;
+button.skill {
+  display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer;
+  box-shadow: 6px 6px 0 0 #000;
 }
-button.play:hover { background: var(--white); }
-button.play:active { transform: translate(3px, 3px); box-shadow: 0 0 0 3px #000, 3px 3px 0 3px #000; }
-button.play[disabled] { background: var(--lav); cursor: progress; }
+button.skill img { display: block; width: 100%; height: auto; image-rendering: pixelated; }
+button.skill:hover img, button.skill:focus-visible img { filter: brightness(1.25); }
+button.skill:active { transform: translate(3px, 3px); box-shadow: 3px 3px 0 0 #000; }
+button.skill[disabled] { opacity: .5; cursor: progress; }
 .status { min-height: 1.5em; font-size: 15px; color: var(--white); text-shadow: 2px 2px 0 #000; }
 .bar { width: 220px; height: 8px; background: #000; border: 2px solid #000; display: none; }
 .bar i { display: block; height: 100%; width: 0; background: var(--logo); }
 .loading .bar { display: block; }
+.loading button.skill { display: none; }
 .mobile { display: none; margin-top: 18px; padding: 12px 16px; background: #000; box-shadow: 0 0 0 3px var(--plum); }
 .mobile p { margin: 0 0 6px; }
 .touch .mobile { display: block; }
-.touch button.play, .touch .tools { display: none; }
+.touch button.skill, .touch .tools { display: none; }
 
 .tools { display: flex; justify-content: flex-end; gap: 18px; margin-top: 14px; font-size: 15px; }
 .tools button { font: inherit; color: var(--peach); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 
-.below { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; margin-top: 40px; }
-h1 { font-size: 30px; line-height: 1.15; font-weight: 500; margin: 0 0 12px; color: var(--logo); }
-h2 { font-size: 19px; font-weight: 500; margin: 0 0 12px; color: var(--rim); }
+.howto { display: block; width: 100%; height: auto; margin-top: 36px; image-rendering: pixelated; image-rendering: crisp-edges; box-shadow: 0 0 0 3px #000; }
 p { margin: 0 0 14px; max-width: 34em; }
-.keys { display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; margin: 0; }
-.keys dt { white-space: nowrap; }
-kbd {
-  display: inline-block; min-width: 1.8em; text-align: center;
-  font: inherit; font-size: 14px; font-weight: 500; color: #000;
-  background: var(--peach); padding: 1px 6px; margin-right: 3px;
-  box-shadow: 0 3px 0 var(--plum);
-}
-.keys dd { margin: 0; color: var(--white); }
-.fine { margin-top: 40px; font-size: 14px; color: var(--lav); max-width: none; }
+.fine { margin-top: 28px; font-size: 13px; color: var(--lav); max-width: none; }
 .fine a { color: var(--lav); }
-@media (max-width: 760px) {
-  .below { grid-template-columns: 1fr; gap: 28px; }
-  h1 { font-size: 25px; }
-  button.play { font-size: 19px; padding: 12px 26px 11px; }
-}
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 <!-- Yandex.Metrika counter -->
@@ -139,10 +123,11 @@ kbd {
   </nav>
 
   <div class="screen" id="screen">
-    <img src="poster.png" width="320" height="200" alt="Титульный экран LYMPHODOOM: Т-киллер против вируса, опухолевой клетки и бактерии">
+    <img src="start.png" width="320" height="200" alt="LYMPHODOOM. Управление: W A S D — движение, мышь — прицел и огонь, E или правая кнопка — открыть, 1–7 — оружие, Tab — карта.">
     <canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
     <div class="start" id="start">
-      <button class="play" id="play" type="button">Играть</button>
+      <button class="skill" type="button" data-skill="2"><img src="btn_easy.png" width="150" height="26" alt="Играть: Common cold (легко)"></button>
+      <button class="skill" type="button" data-skill="4"><img src="btn_hard.png" width="150" height="26" alt="Играть: Metastasis (сложно)"></button>
       <div class="bar"><i id="bar"></i></div>
       <div class="status" id="status" role="status" aria-live="polite"></div>
     </div>
@@ -152,38 +137,20 @@ kbd {
     <button type="button" id="fullscreen">На весь экран</button>
   </div>
 
-  <div class="below">
-    <section>
-      <h1>Вы — Т-киллер. Организм заражён.</h1>
-      <p>LYMPHODOOM — это Doom 1993 года, перенесённый внутрь человеческого тела. Три уровня ведут из лимфоузла через кровоток в опухоль, где ждёт опухолевая масса.</p><p>Враги — вирусы, бактерии, паразиты, фаги, споры грибка и опухолевые клетки, в том числе те, что потеряли MHC-I и почти невидимы. Оружие — то, чем на самом деле пользуется иммунная клетка: гранулы, цитокины, антитела, интерферон.</p><p>Игра на английском. Прогресс сохраняется в браузере.</p>
-    </section>
-    <section>
-      <h2>Управление</h2>
-      <dl class="keys">
-        <dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd>движение</dd>
-        <dt>Мышь</dt><dd>поворот и прицел</dd>
-        <dt>Левая кнопка</dt><dd>огонь</dd>
-        <dt><kbd>E</kbd> или правая кнопка</dt><dd>открыть ворота, нажать рецептор</dd>
-        <dt><kbd>Shift</kbd></dt><dd>шагом (бег включён по умолчанию)</dd>
-        <dt><kbd>1</kbd>…<kbd>7</kbd></dt><dd>оружие</dd>
-        <dt><kbd>Tab</kbd></dt><dd>карта</dd>
-        <dt><kbd>Esc</kbd></dt><dd>меню, сохранение, загрузка</dd>
-      </dl>
-    </section>
-  </div>
+  <img class="howto" src="howto.png" width="320" height="168" alt="Вы — Т-киллер. Стреляйте в вирусы, бактерии, опухолевые клетки, паразитов, фагов, споры и босса. Глюкоза лечит, мембрана защищает, ещё есть патроны и дендритная клетка с картой; MHC-I-ключи открывают ворота. Три уровня: лимфоузел, кровоток, опухоль.">
 
-  <p class="fine">Движок: <a href="https://github.com/GMH-Code/Dwasm">Dwasm</a> (PrBoomX / PrBoom+), GNU GPL v2. Персонажи нарисованы по библии Cancer Wars. Инструменты музыки: Freedoom (BSD). Игра не связана с id Software и ZeniMax. <a href="https://github.com/kosta-blackshow/lymphodoom">Исходный код</a>.</p>
+  <p class="fine">Движок: <a href="https://github.com/GMH-Code/Dwasm">Dwasm</a> (PrBoomX / PrBoom+), GNU GPL v2. Инструменты музыки: Freedoom (BSD). Игра не связана с id Software и ZeniMax. <a href="https://github.com/kosta-blackshow/lymphodoom">Исходный код</a>.</p>
 </div>
 
 <script>
 (function () {
   var screen = document.getElementById('screen');
   var canvas = document.getElementById('canvas');
-  var play = document.getElementById('play');
+  var skills = document.querySelectorAll('button.skill');
   var statusEl = document.getElementById('status');
   var bar = document.getElementById('bar');
   var start = document.getElementById('start');
-  var T = {"loading": "Загрузка…", "preparing": "Запускаю движок…", "failed": "Файлы игры не загрузились. Проверьте соединение и нажмите «Играть» ещё раз.", "crashed": "Движок остановился. Обновите страницу, чтобы играть снова."};
+  var T = {"loading": "Загрузка…", "preparing": "Запускаю движок…", "failed": "Файлы игры не загрузились. Проверьте соединение и выберите сложность ещё раз.", "crashed": "Движок остановился. Обновите страницу, чтобы играть снова."};
 
   var coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
   if (coarse) document.body.classList.add('touch');
@@ -208,15 +175,15 @@ kbd {
   }
 
   var started = false;
-  function launch() {
+  function launch(skill) {
     if (started) return;
     started = true;
-    play.disabled = true;
+    skills.forEach(function (b) { b.disabled = true; });
     start.classList.add('loading');
     statusEl.textContent = T.loading;
     window.Module = {
       canvas: canvas,
-      arguments: ['-iwad', 'lymphodoom.wad'],
+      arguments: ['-iwad', 'lymphodoom.wad', '-skill', String(skill || 2), '-warp', '1', '1'],
       locateFile: function (path) { return 'game/' + path; },
       print: function () { console.log(Array.prototype.join.call(arguments, ' ')); },
       printErr: function () { console.warn(Array.prototype.join.call(arguments, ' ')); },
@@ -237,16 +204,18 @@ kbd {
     var s = document.createElement('script');
     s.src = 'game/index.js';
     s.async = true;
-    s.onerror = function () { statusEl.textContent = T.failed; play.disabled = false; started = false; };
+    s.onerror = function () { statusEl.textContent = T.failed; skills.forEach(function (b) { b.disabled = false; }); started = false; start.classList.remove('loading'); };
     document.body.appendChild(s);
   }
 
-  play.addEventListener('click', launch);
+  skills.forEach(function (b) {
+    b.addEventListener('click', function () { launch(b.getAttribute('data-skill')); });
+  });
   canvas.addEventListener('mousedown', lockPointer);
   document.getElementById('fullscreen').addEventListener('click', function () {
     var el = screen;
     (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el);
-    if (!started) launch();
+    if (!started) launch(2);
   });
   document.addEventListener('fullscreenchange', function () {
     screen.style.border = document.fullscreenElement ? '0' : '';
