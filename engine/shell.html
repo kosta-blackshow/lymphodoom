@@ -1,0 +1,7 @@
+<!doctype html>
+<!-- Minimal Emscripten shell. The real page is web/index.html, which defines Module itself. -->
+<html><head><meta charset="utf-8"><title>LYMPHODOOM engine</title></head>
+<body><canvas id="canvas"></canvas>
+<script>var Module = { canvas: document.getElementById('canvas'), arguments: ['-iwad', 'lymphodoom.wad'] };</script>
+{{{ SCRIPT }}}
+</body></html>

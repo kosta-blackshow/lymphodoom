@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="{{lang}}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{title}}</title>
+<meta name="description" content="{{description}}">
+<link rel="canonical" href="{{canonical}}">
+<link rel="alternate" href="https://kostachernyshov.ru/lymphodoom/" hreflang="ru">
+<link rel="alternate" href="https://kostachernyshov.com/lymphodoom/" hreflang="en">
+<link rel="alternate" href="https://kostachernyshov.com/lymphodoom/" hreflang="x-default">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{canonical}}">
+<meta property="og:title" content="LYMPHODOOM">
+<meta property="og:description" content="{{description}}">
+<meta property="og:image" content="{{origin}}/lymphodoom/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect x='4' y='3' width='8' height='10' fill='%2300e436'/%3E%3Crect x='3' y='4' width='10' height='8' fill='%2300e436'/%3E%3Crect x='5' y='4' width='6' height='8' fill='%23fff1e8'/%3E%3Crect x='4' y='5' width='8' height='6' fill='%23fff1e8'/%3E%3Crect x='6' y='7' width='1' height='2' fill='%23000'/%3E%3Crect x='9' y='7' width='1' height='2' fill='%23000'/%3E%3C/svg%3E">
+<style>
+@font-face { font-family: "Helvetica Neue Site"; src: url("/fonts/HelveticaNeue-Roman.otf") format("opentype"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "Helvetica Neue Site"; src: url("/fonts/HelveticaNeue-Medium.otf") format("opentype"); font-weight: 500; font-display: swap; }
+:root {
+  --navy: #1d2b53;     /* bible NAVY: the tissue background */
+  --grid: #26386a;
+  --deep: #141e3c;
+  --rim: #00e436;      /* killer T rim */
+  --logo: #ffec27;     /* logo yellow */
+  --peach: #ffccaa;
+  --white: #fff1e8;
+  --lav: #83769c;
+  --plum: #7e2553;
+}
+* { box-sizing: border-box; }
+html { background: var(--navy); }
+body {
+  margin: 0;
+  color: var(--white);
+  font-family: "Helvetica Neue Site", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+  background-color: var(--navy);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+  min-height: 100vh;
+}
+a { color: var(--peach); text-underline-offset: 3px; }
+a:hover { color: var(--white); }
+:focus-visible { outline: 3px solid var(--logo); outline-offset: 3px; }
+
+.wrap { max-width: 1040px; margin: 0 auto; padding: 24px 16px 56px; }
+.top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 18px; font-size: 15px; }
+.top a { color: var(--lav); }
+.top a:hover { color: var(--white); }
+
+/* the game screen is the hero: poster first, then the running game in the same frame */
+.screen {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  background: #000;
+  border: 6px solid #000;
+  box-shadow: 0 0 0 3px var(--rim), 10px 10px 0 3px var(--plum);
+  overflow: hidden;
+}
+.screen img, .screen canvas {
+  display: block; width: 100%; height: 100%;
+  image-rendering: pixelated; image-rendering: crisp-edges;
+}
+.screen canvas { display: none; object-fit: contain; background: #000; outline: none; }
+.screen.running img, .screen.running .start { display: none; }
+.screen.running canvas { display: block; }
+.start {
+  position: absolute; left: 50%; top: 21%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+}
+button.play {
+  font: inherit; font-weight: 500; font-size: 22px; letter-spacing: 0.02em;
+  color: #000; background: var(--rim);
+  border: 0; padding: 14px 34px 13px;
+  box-shadow: 0 0 0 3px #000, 6px 6px 0 3px #000;
+  cursor: pointer;
+}
+button.play:hover { background: var(--white); }
+button.play:active { transform: translate(3px, 3px); box-shadow: 0 0 0 3px #000, 3px 3px 0 3px #000; }
+button.play[disabled] { background: var(--lav); cursor: progress; }
+.status { min-height: 1.5em; font-size: 15px; color: var(--white); text-shadow: 2px 2px 0 #000; }
+.bar { width: 220px; height: 8px; background: #000; border: 2px solid #000; display: none; }
+.bar i { display: block; height: 100%; width: 0; background: var(--logo); }
+.loading .bar { display: block; }
+.mobile { display: none; margin-top: 18px; padding: 12px 16px; background: #000; box-shadow: 0 0 0 3px var(--plum); }
+.mobile p { margin: 0 0 6px; }
+.touch .mobile { display: block; }
+.touch button.play, .touch .tools { display: none; }
+
+.tools { display: flex; justify-content: flex-end; gap: 18px; margin-top: 14px; font-size: 15px; }
+.tools button { font: inherit; color: var(--peach); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+
+.below { display: grid; grid-template-columns: 1.1fr 1fr; gap: 40px; margin-top: 40px; }
+h1 { font-size: 30px; line-height: 1.15; font-weight: 500; margin: 0 0 12px; color: var(--logo); }
+h2 { font-size: 19px; font-weight: 500; margin: 0 0 12px; color: var(--rim); }
+p { margin: 0 0 14px; max-width: 34em; }
+.keys { display: grid; grid-template-columns: max-content 1fr; gap: 8px 16px; margin: 0; }
+.keys dt { white-space: nowrap; }
+kbd {
+  display: inline-block; min-width: 1.8em; text-align: center;
+  font: inherit; font-size: 14px; font-weight: 500; color: #000;
+  background: var(--peach); padding: 1px 6px; margin-right: 3px;
+  box-shadow: 0 3px 0 var(--plum);
+}
+.keys dd { margin: 0; color: var(--white); }
+.fine { margin-top: 40px; font-size: 14px; color: var(--lav); max-width: none; }
+.fine a { color: var(--lav); }
+@media (max-width: 760px) {
+  .below { grid-template-columns: 1fr; gap: 28px; }
+  h1 { font-size: 25px; }
+  button.play { font-size: 19px; padding: 12px 26px 11px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<!-- Yandex.Metrika counter -->
+<script type="text/javascript" >
+  (function(m,e,t,r,i,k,a){m[i]=m[i]||function(){(m[i].a=m[i].a||[]).push(arguments)};
+  m[i].l=1*new Date();
+  for (var j = 0; j < document.scripts.length; j++) {if (document.scripts[j].src === r) { return; }}
+  k=e.createElement(t),a=e.getElementsByTagName(t)[0],k.async=1,k.src=r,a.parentNode.insertBefore(k,a)})
+  (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+  ym(98935705, "init", { clickmap:true, trackLinks:true, accurateTrackBounce:true });
+</script>
+<noscript><div><img src="https://mc.yandex.ru/watch/98935705" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+<!-- /Yandex.Metrika counter -->
+</head>
+<body>
+<div class="wrap">
+  <nav class="top">
+    <a href="/">{{home}}</a>
+    <a href="{{other_url}}" hreflang="{{other_lang}}" lang="{{other_lang}}">{{other_label}}</a>
+  </nav>
+
+  <div class="screen" id="screen">
+    <img src="poster.png" width="320" height="200" alt="{{poster_alt}}">
+    <canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
+    <div class="start" id="start">
+      <button class="play" id="play" type="button">{{play}}</button>
+      <div class="bar"><i id="bar"></i></div>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+    </div>
+  </div>
+  <div class="mobile" id="mobile"><p>{{mobile}}</p><a href="#" id="anyway">{{anyway}}</a></div>
+  <div class="tools">
+    <button type="button" id="fullscreen">{{fullscreen}}</button>
+  </div>
+
+  <div class="below">
+    <section>
+      <h1>{{h1}}</h1>
+      {{about}}
+    </section>
+    <section>
+      <h2>{{controls}}</h2>
+      <dl class="keys">
+        <dt><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></dt><dd>{{k_move}}</dd>
+        <dt>{{mouse}}</dt><dd>{{k_turn}}</dd>
+        <dt>{{lmb}}</dt><dd>{{k_fire}}</dd>
+        <dt><kbd>E</kbd> {{or}} {{rmb}}</dt><dd>{{k_use}}</dd>
+        <dt><kbd>Shift</kbd></dt><dd>{{k_walk}}</dd>
+        <dt><kbd>1</kbd>…<kbd>7</kbd></dt><dd>{{k_weapons}}</dd>
+        <dt><kbd>Tab</kbd></dt><dd>{{k_map}}</dd>
+        <dt><kbd>Esc</kbd></dt><dd>{{k_menu}}</dd>
+      </dl>
+    </section>
+  </div>
+
+  <p class="fine">{{fine}}</p>
+</div>
+
+<script>
+(function () {
+  var screen = document.getElementById('screen');
+  var canvas = document.getElementById('canvas');
+  var play = document.getElementById('play');
+  var statusEl = document.getElementById('status');
+  var bar = document.getElementById('bar');
+  var start = document.getElementById('start');
+  var T = {{js_strings}};
+
+  var coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
+  if (coarse) document.body.classList.add('touch');
+  document.getElementById('anyway').addEventListener('click', function (e) {
+    e.preventDefault(); document.body.classList.remove('touch');
+  });
+
+  function setStatus(text) {
+    var m = text && text.match(/\(([\d.]+)\/(\d+)\)/);
+    if (m) {
+      bar.style.width = Math.min(100, 100 * parseFloat(m[1]) / parseFloat(m[2])) + '%';
+      statusEl.textContent = T.loading;
+    } else if (text) {
+      statusEl.textContent = T.preparing;
+    }
+  }
+
+  function lockPointer() {
+    if (document.pointerLockElement !== canvas && canvas.requestPointerLock) {
+      try { canvas.requestPointerLock(); } catch (e) {}
+    }
+  }
+
+  var started = false;
+  function launch() {
+    if (started) return;
+    started = true;
+    play.disabled = true;
+    start.classList.add('loading');
+    statusEl.textContent = T.loading;
+    window.Module = {
+      canvas: canvas,
+      arguments: ['-iwad', 'lymphodoom.wad'],
+      locateFile: function (path) { return 'game/' + path; },
+      print: function () { console.log(Array.prototype.join.call(arguments, ' ')); },
+      printErr: function () { console.warn(Array.prototype.join.call(arguments, ' ')); },
+      setStatus: setStatus,
+      monitorRunDependencies: function () {},
+      hideConsole: function () {
+        screen.classList.add('running');
+        canvas.focus();
+      },
+      showConsole: function () {
+        screen.classList.remove('running');
+        statusEl.textContent = T.crashed;
+      },
+      captureMouse: lockPointer,
+      winResized: function () {},
+      softExit: function () { location.reload(); }
+    };
+    var s = document.createElement('script');
+    s.src = 'game/index.js';
+    s.async = true;
+    s.onerror = function () { statusEl.textContent = T.failed; play.disabled = false; started = false; };
+    document.body.appendChild(s);
+  }
+
+  play.addEventListener('click', launch);
+  canvas.addEventListener('mousedown', lockPointer);
+  document.getElementById('fullscreen').addEventListener('click', function () {
+    var el = screen;
+    (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el);
+    if (!started) launch();
+  });
+  document.addEventListener('fullscreenchange', function () {
+    screen.style.border = document.fullscreenElement ? '0' : '';
+  });
+})();
+</script>
+</body>
+</html>

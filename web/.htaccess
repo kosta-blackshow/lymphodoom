@@ -1,0 +1,41 @@
+# LYMPHODOOM: language by domain, wasm MIME type, precompressed engine files, caching.
+DirectoryIndex index.html
+AddType application/wasm .wasm
+AddType application/octet-stream .data
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTP_HOST} ^(www\.)?kostachernyshov\.ru$ [NC]
+  RewriteRule ^(index\.html)?$ ru.html [L]
+</IfModule>
+
+# Serve game/*.gz when the browser accepts gzip (needs mod_rewrite + mod_headers).
+<IfModule mod_headers.c>
+  <IfModule mod_rewrite.c>
+    RewriteCond %{HTTP:Accept-Encoding} gzip
+    RewriteCond %{REQUEST_FILENAME}.gz -f
+    RewriteRule ^game/(index\.(js|wasm|data))$ game/$1.gz [L]
+  </IfModule>
+  <FilesMatch "\.js\.gz$">
+    ForceType application/javascript
+    Header set Content-Encoding gzip
+  </FilesMatch>
+  <FilesMatch "\.wasm\.gz$">
+    ForceType application/wasm
+    Header set Content-Encoding gzip
+  </FilesMatch>
+  <FilesMatch "\.data\.gz$">
+    ForceType application/octet-stream
+    Header set Content-Encoding gzip
+  </FilesMatch>
+  <FilesMatch "\.(js|wasm|data|gz)$">
+    Header append Vary Accept-Encoding
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+  <FilesMatch "\.png$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+</IfModule>
+<IfModule mod_env.c>
+  SetEnvIfNoCase Request_URI "\.gz$" no-gzip
+</IfModule>

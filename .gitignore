@@ -1,0 +1,5 @@
+build/
+web/game/
+__pycache__/
+*.pyc
+outputs/*.tgz
