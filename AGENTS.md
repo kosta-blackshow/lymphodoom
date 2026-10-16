@@ -1,4 +1,22 @@
-# lymphodoom
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Команды
+
+Тестов и линтера нет; проверка — сборка и playtest.
+
+- Полная сборка (движок + WAD + страницы): `sh engine/build.sh /path/to/freedoom1.wad` → `web/game/index.{js,wasm,data}` и `.gz`. Первый запуск клонирует Dwasm в `build/work/Dwasm` на коммит `ddf0347` и применяет патч; при существующем клоне патч повторно **не** применяется — после правки `engine/lymphodoom.patch` удалить `build/work/Dwasm` (или внести правку и в клон).
+- Только данные (WAD): `python3 tools/build.py --freedoom freedoom1.wad --prboomx build/work/Dwasm/build_native/prboomx.wad --out build/`. Тестовая сборка с боссом, умирающим при спавне: `LYMPHO_TEST_BOSS=1 python3 tools/build.py ...`.
+- Только страницы RU/EN: `python3 tools/page.py` (рендерит `web/index.html` и `web/ru.html` из `web/page.template.html`; тексты — словари `EN`/`RU` в скрипте); картинки страницы: `python3 art/webart.py web`.
+- Playtest нативным движком под Xvfb: `python3 tools/playtest.py ENGINE WADDIR OUTDIR SCRIPT [доп. аргументы движка]`; скрипт — строки `wait|key|hold|type|con|shot` (пример: `tools/playtest_boss.txt`). Для проверки BODY: `-bodysecs N` сокращает таймер.
+
+## Архитектура
+
+- `tools/build.py` собирает `lymphodoom.wad` (IWAD) из генераторов: `art/*` (спрайты, оружие, текстуры, HUD; палитра и примитивы — в `vendor/pixel_kit/`), `tools/maps.py` + `mapgen.py` (уровни, ноды через zdbsp), `sfx.py`, `music.py`, `dehacked.py` (DEHACKED/BEX, UMAPINFO). Из `freedoom1.wad` берутся только GENMIDI/DMXGUS и несколько UI-лампов.
+- Игровая логика, которой нет в ванильном Doom (мирные клетки, здоровье организма BODY, меню, межуровневая карта тела), живёт в патче движка (`src/lympho.c` внутри `engine/lymphodoom.patch`), а не в данных WAD. Правки геймплея обычно затрагивают и патч, и генераторы.
+- Страница не показывает меню: кнопки сложности запускают движок с `-skill 2|4 -warp 1 1`. `engine/shell.html` — оболочка Emscripten, `engine/prboomX.cfg` — конфиг по умолчанию.
+- Публикуется `web/` без `page.template.html`; `web/game/` и `build/` в Git не входят.
 
 ## Цель
 
