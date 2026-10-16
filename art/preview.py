@@ -28,7 +28,7 @@ def sheet(groups, out, scale=3, bg=(20, 26, 50)):
 
 if __name__ == '__main__':
     import monsters
-    sheet([(k, fn()) for k, fn in monsters.ALL.items()], sys.argv[1] if len(sys.argv) > 1 else '/tmp/monsters.png', scale=2)
+    sheet([(k, fn()) for k, fn in monsters.ALL.items()], sys.argv[1] if len(sys.argv) > 1 else 'monsters.png', scale=2)
 
 def grid(d, out, scale=3, cols=8, bg=(20, 26, 50)):
     cells = []

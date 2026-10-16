@@ -277,7 +277,7 @@ def all_music():
 
 if __name__ == "__main__":
     import os, sys
-    out = sys.argv[1] if len(sys.argv) > 1 else "/tmp/music"
+    out = sys.argv[1] if len(sys.argv) > 1 else "music"
     os.makedirs(out, exist_ok=True)
     for k, v in all_music().items():
         open(os.path.join(out, k + ".mid"), "wb").write(v)
