@@ -120,6 +120,16 @@ def build(args):
     # ---------------------------------------------------------- status bar & HUD
     lumps.append(("STBAR", img_lump(ui.stbar())))
     lumps.append(("STARMS", img_lump(ui.starms())))
+    # BODY: the organism's health in the arms panel (drawn by the engine, lympho.c)
+    for i in range(4):
+        lumps.append(("STBICON%d" % i, img_lump(ui.body_icon(i))))
+    for i in range(10):
+        lumps.append(("STBNUM%d" % i, img_lump(ui.body_digit(str(i)))))
+        lumps.append(("STBRNM%d" % i, img_lump(ui.body_digit(str(i), 8, 2))))
+    lumps.append(("STBPCT", img_lump(ui.body_digit("%"))))
+    lumps.append(("STBRPC", img_lump(ui.body_digit("%", 8, 2))))
+    lumps.append(("WIBODY", img_lump(ui.ps_text("BODY", k=2))))
+    lumps.append(("BODYDEAD", img_lump(ui.body_dead())))
     for i in range(10):
         lumps.append(("STTNUM%d" % i, img_lump(ui.big_digit(str(i)))))
         lumps.append(("STYSNUM%d" % i, img_lump(ui.small_digit(str(i), 10))))

@@ -21,3 +21,8 @@ villains plum with a red rim). These are the places where the game adds to it or
 - **Weapons**: synapse punch, granule gun, cytokine burst, granzyme stream, antibody bomb,
   interferon, CAR-T boost. Pickups: glucose (health), membrane (armour), IL-2 surge
   (soulsphere), mucus coat (radiation suit), dendritic scout (computer map).
+- **Own cells** (stem cell, epithelial cell, granulocyte, senescent cell) wander the rooms and run
+  from nearby enemies. One hit bursts them like enemies do; that is an autoimmune hit on the body
+  (−5 % BODY). They are civilians, not hostages: enemies do not hunt them, but stray shots kill them.
+- **BODY.** The status bar slot of Doom's ARMS panel shows the organism's health: a person
+  silhouette that reddens as the body weakens and blinks red below 25 %.

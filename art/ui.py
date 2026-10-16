@@ -126,12 +126,72 @@ def tiny(im, x, y, t, col):
                     d.point((x + n * 4 + q, y + r), fill=RGBA(col))
 
 
-def starms():
+def starms_unused():
     im = blank(40, 32, NAVY, 12)
     d = ImageDraw.Draw(im)
     d.rectangle((0, 1, 39, 31), outline=RGBA(LGREY, 4))
     m = ps_mask("ARMS")
     im.paste(RGBA(LGREY, 2), (20 - m.width // 2, 23), m)
+    return im
+
+
+def starms():
+    """The ARMS panel becomes BODY: the organism's health (number drawn by the engine)."""
+    im = blank(40, 32, NAVY, 12)
+    d = ImageDraw.Draw(im)
+    d.rectangle((0, 1, 39, 31), outline=RGBA(PINK, 4))
+    m = ps_mask("BODY")
+    im.paste(RGBA(PINK, 2), (20 - m.width // 2, 23), m)
+    return im
+
+
+def body_icon(level):
+    """8x13 silhouette of a person; reddens as the body's health drops (level 0..3)."""
+    col = [PEACH, PINK, RED, RED][level]
+    im = blank(8, 13)
+    d = ImageDraw.Draw(im)
+    d.ellipse((2, 0, 5, 3), fill=RGBA(col))
+    d.rectangle((1, 4, 6, 8), fill=RGBA(col))
+    d.rectangle((2, 9, 3, 12), fill=RGBA(col)); d.rectangle((4, 9, 5, 12), fill=RGBA(col))
+    if level == 3:
+        d.point((3, 6), fill=RGBA(BLACK)); d.point((4, 6), fill=RGBA(BLACK))
+    return im
+
+
+def body_digit(ch, top=YELLOW, shade=ORANGE):
+    """Tall narrow digit for the BODY panel: the logo font, 1 px wide, 2 px tall per dot."""
+    if ch == "%":
+        rows = ["##..#", "##.#.", "...#.", "..#..", ".#...", ".#.##", "#..##"]
+    else:
+        rows = TITLE_GLYPHS.get(ch) or {
+            "7": ["#####", "....#", "...#.", "..#..", ".#...", ".#...", ".#..."],
+            "8": [".###.", "#...#", "#...#", ".###.", "#...#", "#...#", ".###."],
+            "9": [".###.", "#...#", "#...#", ".####", "....#", "....#", ".###."],
+        }[ch]
+    im = blank(7, 15)
+    d = ImageDraw.Draw(im)
+    for pass_, c in ((0, PLUM), (1, None)):
+        for r, row in enumerate(rows):
+            for q, b in enumerate(row):
+                if b == "#":
+                    x, y = q + (1 if pass_ == 0 else 0), r * 2 + (1 if pass_ == 0 else 0)
+                    d.rectangle((x, y, x, y + 1), fill=RGBA(c if c is not None else (top if r < 4 else shade)))
+    return im
+
+
+def body_dead():
+    """Game over: the body's silhouette goes grey."""
+    im = blank(320, 200, BLACK)
+    layer = blank(320, 260)
+    _body(layer)
+    arr = np.asarray(layer).copy()
+    m = arr[..., 3] > 0
+    arr[m, :3] = RGB(DGREY, 6)
+    im.alpha_composite(Image.fromarray(arr, "RGBA").crop((0, 0, 320, 200 - 60)), (0, 60))
+    lg = logo("THE BODY DIED", 3, top=RED, shade=PLUM, back=BLACK)
+    im.alpha_composite(lg, ((320 - lg.width) // 2, 16))
+    sub = ps_text("BACK TO THE LYMPH NODE", LGREY, LGREY, None, k=1)
+    im.alpha_composite(sub, ((320 - sub.width) // 2, 186))
     return im
 
 
@@ -504,6 +564,7 @@ def finale():
     paste_spr(im, hero, 160 - hero.w * 2, 72, 4)
     lg = logo("CLEAR!", 6, top=GREEN, shade=DGREEN, back=BLACK)
     im.alpha_composite(lg, ((320 - lg.width) // 2, 16))
+    d.rectangle((0, 172, 320, 200), fill=RGBA(BLACK))
     return im
 
 

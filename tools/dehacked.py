@@ -127,6 +127,34 @@ THINGS = {
 }
 
 
+# Own body cells (civilians): the decoration things become shootable wanderers.
+# (DeHackEd thing number, sprite index) for COLU stem cell, CBRA body cell,
+# TLMP granulocyte, TLP2 senescent cell.
+CIVILIANS = [(82, 94), (101, 113), (80, 136), (81, 137)]
+CIV_FIRST = 1120
+CIV_STATES = [  # (frame letter index, tics, action, next offset or None)
+    (0, 6, "CivWander", 1), (1, 6, "CivWander", 0),
+    (2, 3, None, 3), (3, 4, "Scream", 4), (4, 4, "Fall", 5), (5, 4, None, 6), (6, 4, None, 7),
+    (7, -1, None, None),
+]
+SFX_PODTH1 = 59
+
+
+def civilian_patch():
+    frames, things, ptrs = [], [], []
+    for i, (thing, sprite) in enumerate(CIVILIANS):
+        base = CIV_FIRST + i * len(CIV_STATES)
+        for k, (fr, tics, action, nxt) in enumerate(CIV_STATES):
+            frames += ["Frame %d" % (base + k), "Sprite number = %d" % sprite, "Sprite subnumber = %d" % fr,
+                       "Duration = %d" % tics, "Next frame = %d" % (0 if nxt is None else base + nxt), ""]
+            ptrs.append("FRAME %d = %s" % (base + k, action or "NULL"))
+        things += ["Thing %d" % thing, "Initial frame = %d" % base, "First moving frame = %d" % base,
+                   "Injury frame = 0", "Pain chance = 0", "Death frame = %d" % (base + 2),
+                   "Hit points = 1", "Speed = 3", "Radius = %d" % (16 << 16), "Height = %d" % (40 << 16),
+                   "Mass = 100", "Death sound = %d" % SFX_PODTH1, "Bits = SOLID+SHOOTABLE", ""]
+    return frames, things, ptrs
+
+
 def dehacked():
     import os
     if os.environ.get("LYMPHO_TEST_BOSS"):
@@ -140,9 +168,12 @@ def dehacked():
         out.append("Thing %d" % t)
         out += ["%s = %d" % (k, v) for k, v in fields.items()]
         out.append("")
+    cf, ct, cp = civilian_patch()
+    out += cf + ct
     out += ["[CODEPTR]"]
     for i, (frame, tics, action, nxt) in enumerate(SARG_STATES):
         out.append("FRAME %d = %s" % (NEW_FIRST + i, action or "NULL"))
+    out += cp
     out += ["", "[STRINGS]"]
     for k, v in STRINGS.items():
         out.append("%s = %s" % (k, v))

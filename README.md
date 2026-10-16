@@ -4,6 +4,13 @@ Doom (1993) inside the human body. You are a killer T cell; three levels take yo
 lymph node through the bloodstream into a tumor. Runs in the browser:
 https://kostachernyshov.com/lymphodoom/ · https://kostachernyshov.ru/lymphodoom/
 
+The organism is infected and its health (BODY, in the status bar) drains over time: a full body lasts
+15 minutes on COMMON COLD and 9 on METASTASIS. Each enemy killed gives +1 %, the TUMOR MASS +10 %;
+each own cell killed (by you or by an enemy shot) costs 5 %. At 0 % the body dies and the game
+restarts from the lymph node. If the T cell dies, the level restarts with the body it had at the
+level start. Engine code for this is `src/lympho.c` in the engine patch; `-bodysecs N` shortens the
+drain for testing.
+
 ## What is here
 
 | Path | What |

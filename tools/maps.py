@@ -199,6 +199,9 @@ def e1m1():
     L.island("paracortex", -100, 1250, 80, dceil=-16, light=200, ctex="LIGHTF", seed=34)
 
     L.at("cortex", PLAYER, -120, -40, angle=0)
+    if os.environ.get("LYMPHO_TEST_CIV"):  # test build only: civilians right in front of the start
+        for k, t in enumerate((BODYCELL, STEMLAMP, GRANULO, SENESC)):
+            L.at("cortex", t, 40, -100 + k * 40)
     L.spawn("cortex", VIRUS, 0, 1, 2)
     L.spawn("follicle", VIRUS, 3, 5, 6)
     L.spawn("follicle", BACTERIUM, 1, 2, 3)
@@ -234,14 +237,13 @@ def e1m1():
     L.at("plasma_cell", CHAINGUN, 0, 0)
     L.put("plasma_cell", AMMO, 1)
     L.put("efferent", STIM, 1)
-    L.put("cortex", STEMLAMP, 2)
+    # own cells (civilians): 8 per level
+    L.put("follicle", GRANULO, 2)
     L.put("germinal", BODYCELL, 3)
-    L.put("germinal", STEMLAMP, 2)
-    L.put("paracortex", GRANULO, 2)
-    L.put("cords", SENESC, 1)
+    L.put("paracortex", STEMLAMP, 2)
+    L.put("sinus", SENESC, 1)
     L.put("cords", TOXIN, 2)
     L.put("sinus", TOXIN, 3)
-    L.put("follicle", GRANULO, 1)
     return L.m
 
 
@@ -273,7 +275,7 @@ def e1m2():
     L.wall_feature("exit", 0, mid="SW1EXIT", special=11)
     L.pillars("capillary", 7, r=34, dist=0.55, seed=60)
     L.pillars("capillary", 3, r=28, dist=0.2, seed=61, phase=0.4)
-    L.island("atrium", 300, 2100, 120, dfloor=32, dceil=-32, light=224, ctex="LIGHTF", seed=62)
+    L.island("atrium", 300, 2100, 120, dfloor=24, dceil=-32, light=224, ctex="LIGHTF", seed=62)
     L.pillars("atrium", 4, r=50, dist=0.62, seed=63, phase=0.78)
     L.island("valve", 1700, 350, 80, dfloor=16, light=200, seed=64)
 
@@ -315,8 +317,10 @@ def e1m2():
     L.at("exit", MAP, 0, 60)
     for r in ("valve", "capillary", "atrium", "aorta"):
         L.put(r, RBC, 6)
-    L.put("start", STEMLAMP, 2)
+    L.put("valve", BODYCELL, 2)
+    L.put("capillary", STEMLAMP, 3)
     L.put("atrium", GRANULO, 2)
+    L.put("aorta", SENESC, 1)
     L.put("atrium", TOXIN, 3)
     L.put("valve", TOXIN, 2)
     return L.m
@@ -400,8 +404,10 @@ def e1m3():
     L.put("core", MEDI, 2)
     L.put("core", BROK, 1)
     L.put("core", SBOX, 1)
-    L.put("front", BODYCELL, 3)
-    L.put("front", SENESC, 1)
+    L.put("stroma", BODYCELL, 2)
+    L.put("hypoxic", SENESC, 2)
+    L.put("angio", GRANULO, 2)
+    L.put("core", STEMLAMP, 2)
     L.put("stroma", COLLAGEN, 4)
     L.put("hypoxic", DEBRIS, 4)
     L.put("core", COLLAGEN, 4)

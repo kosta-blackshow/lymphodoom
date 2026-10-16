@@ -21,11 +21,70 @@ index dd3cfb6..70691f6 100644
              -sFULL_ES2=1 \
              -sINITIAL_MEMORY=64MB \
              -sTOTAL_STACK=2MB \
+diff --git a/src/CMakeLists.txt b/src/CMakeLists.txt
+index 25b08de..3e5b67e 100644
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -39,6 +39,8 @@ set(COMMON_SRC
+     f_wipe.c
+     f_wipe.h
+     g_game.c
++    lympho.c
++    lympho.h
+     g_game.h
+     g_overflow.c
+     g_overflow.h
+diff --git a/src/d_deh.c b/src/d_deh.c
+index e5a2f7d..92fde18 100644
+--- a/src/d_deh.c
++++ b/src/d_deh.c
+@@ -1404,6 +1404,7 @@ static const deh_bexptr deh_bexptrs[] = // CPhipps - static const
+   {A_FireOldBFG,      "A_FireOldBFG"},      // killough 7/19/98: classic BFG firing function
+   {A_BetaSkullAttack, "A_BetaSkullAttack"}, // killough 10/98: beta lost souls attacked different
+   {A_Stop,            "A_Stop"},
++  {A_CivWander,       "A_CivWander"},       // LYMPHODOOM: civilians
+ 
+   // This NULL entry must be the last in the list
+   {NULL,              "A_NULL"},  // Ty 05/16/98
 diff --git a/src/d_main.c b/src/d_main.c
-index 763ea02..c4932d7 100644
+index 763ea02..a488048 100644
 --- a/src/d_main.c
 +++ b/src/d_main.c
-@@ -823,6 +823,11 @@ void D_DoAdvanceDemo(void)
+@@ -81,6 +81,7 @@
+ #include "r_main.h"
+ #include "r_fps.h"
+ #include "d_main.h"
++#include "lympho.h"
+ #include "d_deh.h"  // Ty 04/08/98 - Externalizations
+ #include "lprintf.h"  // jff 08/03/98 - declaration of lprintf
+ #include "am_map.h"
+@@ -475,16 +476,20 @@ void D_Display (fixed_t frac)
+ 
+     R_RestoreInterpolations();
+ 
+-    ST_Drawer(
+-        ((viewheight != SCREENHEIGHT)
+-         || ((automapmode & am_active) && !(automapmode & am_overlay))),
+-        redrawborderstuff || BorderNeedRefresh,
+-        (menuactive == mnact_full));
++    {
++      dboolean stbar = ((viewheight != SCREENHEIGHT)
++         || ((automapmode & am_active) && !(automapmode & am_overlay)));
++      // LYMPHODOOM: redraw the bar every frame so the BODY number stays clean
++      ST_Drawer(stbar, true, (menuactive == mnact_full));
++      if (stbar && !deathmatch)
++        lympho_draw_hud();
++    }
+ 
+     BorderNeedRefresh = false;
+     if (V_GetMode() != VID_MODEGL)
+       R_DrawViewBorder();
+     HU_Drawer();
++    lympho_draw_overlay(); // LYMPHODOOM: "the body died"
+ 
+ #ifdef GL_DOOM
+     if (V_GetMode() == VID_MODEGL)
+@@ -823,6 +828,11 @@ void D_DoAdvanceDemo(void)
    // do not even attempt to play DEMO4 if it is not available
    if (demosequence == 6 && gamemode == commercial && W_CheckNumForName("demo4") < 0)
      demosequence = 0;
@@ -37,7 +96,7 @@ index 763ea02..c4932d7 100644
    demostates[demosequence][gamemode].func
      (demostates[demosequence][gamemode].name);
  }
-@@ -919,7 +924,7 @@ void CheckIWAD(const char *iwadname,GameMode_t *gmode,dboolean *hassec)
+@@ -919,7 +929,7 @@ void CheckIWAD(const char *iwadname,GameMode_t *gmode,dboolean *hassec)
  {
    if ( !M_access (iwadname,R_OK) )
    {
@@ -46,7 +105,7 @@ index 763ea02..c4932d7 100644
      FILE* fp;
  
      // Identify IWAD correctly
-@@ -982,6 +987,9 @@ void CheckIWAD(const char *iwadname,GameMode_t *gmode,dboolean *hassec)
+@@ -982,6 +992,9 @@ void CheckIWAD(const char *iwadname,GameMode_t *gmode,dboolean *hassec)
              bfgedition++;
            if (!strncmp(fileinfo[length].name,"HACX",4))
              hx++;
@@ -56,7 +115,7 @@ index 763ea02..c4932d7 100644
          }
          free(fileinfo);
  
-@@ -1009,6 +1017,8 @@ void CheckIWAD(const char *iwadname,GameMode_t *gmode,dboolean *hassec)
+@@ -1009,6 +1022,8 @@ void CheckIWAD(const char *iwadname,GameMode_t *gmode,dboolean *hassec)
        *gmode = registered;
      else if (sw>=9)
        *gmode = shareware;
@@ -65,7 +124,7 @@ index 763ea02..c4932d7 100644
    }
    else // error from access call
      I_Error("CheckIWAD: IWAD %s not readable", iwadname);
-@@ -1814,7 +1824,7 @@ static void D_DoomMainSetup(void)
+@@ -1814,7 +1829,7 @@ static void D_DoomMainSetup(void)
        doomverstr = "DOOM Shareware";
        break;
      case registered:
@@ -89,6 +148,273 @@ index f18b9cd..3e46792 100644
  }
  
  
+diff --git a/src/f_finale2.c b/src/f_finale2.c
+index 57ea4ac..58be4d4 100644
+--- a/src/f_finale2.c
++++ b/src/f_finale2.c
+@@ -42,6 +42,7 @@
+ #include "g_game.h"
+ #include "v_video.h"
+ #include "w_wad.h"
++#include "lympho.h"
+ #include "s_sound.h"
+ #include "sounds.h"
+ #include "d_deh.h"  // Ty 03/22/98 - externalizations
+@@ -168,5 +169,6 @@ void FMI_Drawer(void)
+ 		// e6y: wide-res
+ 		V_FillBorder(-1, 0);
+ 		V_DrawNamePatch(0, 0, 0, gamemapinfo->endpic, CR_DEFAULT, VPT_STRETCH);
++		lympho_draw_score(100, 178); // LYMPHODOOM: final score
+ 	}
+ }
+diff --git a/src/g_game.c b/src/g_game.c
+index 110d41a..88d4bc3 100644
+--- a/src/g_game.c
++++ b/src/g_game.c
+@@ -79,6 +79,7 @@
+ #include "d_deh.h"              // Ty 3/27/98 deh declarations
+ #include "p_inter.h"
+ #include "g_game.h"
++#include "lympho.h"
+ #include "lprintf.h"
+ #include "i_main.h"
+ #include "i_system.h"
+@@ -853,6 +854,7 @@ void G_RestartLevel(void)
+ 
+ static void G_DoLoadLevel (void)
+ {
++  lympho_level_start(); // LYMPHODOOM
+   int i;
+ 
+   // Set the sky map.
+@@ -1595,7 +1597,10 @@ void G_DeathMatchSpawnPlayer (int playernum)
+ void G_DoReborn (int playernum)
+ {
+   if (!netgame)
++  {
++    lympho_reborn();                // LYMPHODOOM: the body goes back to the level start
+     gameaction = ga_loadlevel;      // reload the level from scratch
++  }
+   else
+     {                               // respawn at the start
+       int i;
+@@ -3021,6 +3026,8 @@ void G_InitNew(skill_t skill, int episode, int map)
+ {
+   int i;
+ 
++  lympho_new_game(skill); // LYMPHODOOM: a new game starts with a healthy body
++
+   // e6y
+   // This variable is for correct checking for upper limit of episode.
+   // Ultimate Doom, Final Doom and Doom95 have
+diff --git a/src/lympho.c b/src/lympho.c
+new file mode 100644
+index 0000000..7b24168
+--- /dev/null
++++ b/src/lympho.c
+@@ -0,0 +1,171 @@
++/* LYMPHODOOM: the organism's health ("BODY").
++ *
++ * The infection drains the body over time; every enemy killed gives a little back,
++ * every own cell killed (by anyone) costs a lot. One value for the whole game.
++ * When it reaches zero the body dies and the game restarts from E1M1.
++ * Released under the GNU GPL v2 or later, like the rest of the engine.
++ */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include "doomstat.h"
++#include "d_event.h"
++#include "g_game.h"
++#include "info.h"
++#include "m_random.h"
++#include "s_sound.h"
++#include "sounds.h"
++#include "v_video.h"
++#include "w_wad.h"
++#include "r_patch.h"
++#include "m_argv.h"
++#include "lympho.h"
++
++int lympho_body = LYMPHO_BODY_MAX;
++int lympho_dead_tics;
++
++static int body_at_level_start = LYMPHO_BODY_MAX;
++static int reborn_pending;
++static int drain_per_tic = 3;       /* thousandths of a percent per tic */
++static int drain_frac;              /* remainder accumulator, in 1/1000 units */
++static int drain_num = 3175;        /* drain per tic * 1000 */
++
++#define GAMEOVER_TICS (TICRATE * 4)
++
++void lympho_new_game(int skill)
++{
++  /* full body: 15 minutes on COMMON COLD, 9 minutes on METASTASIS */
++  int seconds = skill >= sk_hard ? 9 * 60 : 15 * 60;
++  int p = M_CheckParm("-bodysecs");   /* testing only */
++  if (p && p < myargc - 1 && atoi(myargv[p + 1]) > 0)
++    seconds = atoi(myargv[p + 1]);
++  drain_num = (int)((long long)LYMPHO_BODY_MAX * 1000 / ((long long)seconds * TICRATE));
++  drain_frac = 0;
++  lympho_body = LYMPHO_BODY_MAX;
++  body_at_level_start = LYMPHO_BODY_MAX;
++  reborn_pending = 0;
++  lympho_dead_tics = 0;
++  (void)drain_per_tic;
++}
++
++void lympho_reborn(void)
++{
++  reborn_pending = 1;
++}
++
++void lympho_level_start(void)
++{
++  if (reborn_pending)
++    lympho_body = body_at_level_start;   /* T cell died: retry the level, no penalty */
++  else
++    body_at_level_start = lympho_body;
++  reborn_pending = 0;
++}
++
++static void clamp(void)
++{
++  if (lympho_body > LYMPHO_BODY_MAX) lympho_body = LYMPHO_BODY_MAX;
++  if (lympho_body < 0) lympho_body = 0;
++}
++
++void lympho_tick(void)
++{
++  if (lympho_dead_tics > 0)
++  {
++    if (--lympho_dead_tics == 0)
++      G_DeferedInitNew(gameskill, 1, 1);
++    return;
++  }
++  if (gamestate != GS_LEVEL || demoplayback)
++    return;
++  drain_frac += drain_num;
++  lympho_body -= drain_frac / 1000;
++  drain_frac %= 1000;
++  clamp();
++  if (lympho_body == 0)
++  {
++    lympho_dead_tics = GAMEOVER_TICS;
++    S_StartSound(NULL, sfx_pldeth);
++  }
++}
++
++dboolean lympho_is_civilian(const mobj_t *mo)
++{
++  int n = mo->info->doomednum;
++  return n == 2028 || n == 35 || n == 85 || n == 86;
++}
++
++void lympho_killed(mobj_t *target)
++{
++  if (lympho_dead_tics)
++    return;
++  if (lympho_is_civilian(target))
++    lympho_body -= 5000;               /* autoimmune damage */
++  else if (target->flags & MF_COUNTKILL)
++    lympho_body += target->type == MT_BRUISER ? 10000 : 1000;
++  clamp();
++}
++
++int lympho_body_percent(void)
++{
++  return (lympho_body + 999) / 1000;
++}
++
++/* ------------------------------------------------------------------ drawing */
++
++static void draw_num(int x_right, int y, int value, const char *digits, const char *pct, int flags)
++{
++  char name[9];
++  int x = x_right;
++  int lump = W_CheckNumForName(pct);
++  if (lump >= 0)
++  {
++    x -= R_NumPatchWidth(lump);
++    V_DrawNumPatch(x, y, 0, lump, CR_DEFAULT, flags);
++  }
++  do
++  {
++    sprintf(name, "%s%d", digits, value % 10);
++    lump = W_CheckNumForName(name);
++    if (lump < 0) return;
++    x -= R_NumPatchWidth(lump);
++    V_DrawNumPatch(x, y, 0, lump, CR_DEFAULT, flags);
++    value /= 10;
++  } while (value);
++}
++
++void lympho_draw_hud(void)
++{
++  int p = lympho_body_percent();
++  int low = p < 25;
++  int blink = low && ((gametic / 8) & 1);
++  char icon[9];
++  int lump;
++
++  sprintf(icon, "STBICON%d", p >= 75 ? 0 : p >= 50 ? 1 : p >= 25 ? 2 : 3);
++  lump = W_CheckNumForName(icon);
++  if (lump >= 0)
++    V_DrawNumPatch(107, 171, 0, lump, CR_DEFAULT, VPT_ALIGN_BOTTOM);
++  draw_num(141, 172, p, blink ? "STBRNM" : "STBNUM", blink ? "STBRPC" : "STBPCT", VPT_ALIGN_BOTTOM);
++}
++
++void lympho_draw_score(int x, int y)
++{
++  int lump = W_CheckNumForName("WIBODY");
++  if (lump >= 0)
++    V_DrawNumPatch(x, y, 0, lump, CR_DEFAULT, VPT_STRETCH);
++  draw_num(320 - x, y, lympho_body_percent(), "WINUM", "WIPCNT", VPT_STRETCH);
++}
++
++void lympho_draw_overlay(void)
++{
++  int lump;
++  if (!lympho_dead_tics)
++    return;
++  lump = W_CheckNumForName("BODYDEAD");
++  if (lump >= 0)
++  {
++    V_FillBorder(-1, 0);
++    V_DrawNumPatch(0, 0, 0, lump, CR_DEFAULT, VPT_STRETCH);
++  }
++}
+diff --git a/src/lympho.h b/src/lympho.h
+new file mode 100644
+index 0000000..9ab080e
+--- /dev/null
++++ b/src/lympho.h
+@@ -0,0 +1,25 @@
++/* LYMPHODOOM: the organism's health ("BODY"), civilians and the game-over screen. */
++#ifndef __LYMPHO__
++#define __LYMPHO__
++
++#include "doomtype.h"
++#include "d_think.h"
++#include "p_mobj.h"
++
++#define LYMPHO_BODY_MAX 100000      /* 100% in thousandths of a percent */
++
++extern int lympho_body;             /* current body health */
++extern int lympho_dead_tics;        /* >0 while the "THE BODY DIED" screen is up */
++
++void lympho_new_game(int skill);
++void lympho_level_start(void);
++void lympho_reborn(void);
++void lympho_tick(void);             /* once per game tic in a level */
++void lympho_killed(mobj_t *target);
++dboolean lympho_is_civilian(const mobj_t *mo);
++int lympho_body_percent(void);
++void lympho_draw_hud(void);         /* BODY number and icon in the status bar */
++void lympho_draw_overlay(void);     /* game-over screen */
++void lympho_draw_score(int x, int y); /* "BODY NN%" (intermission, finale) */
++
++#endif
 diff --git a/src/m_cheat.c b/src/m_cheat.c
 index 702a95c..8cb02bf 100644
 --- a/src/m_cheat.c
@@ -466,11 +792,154 @@ index 1987bf5..79d6f64 100644
        break;
      case retail:
        // We are fine.
+diff --git a/src/p_enemy.c b/src/p_enemy.c
+index 49fcd23..845da0c 100644
+--- a/src/p_enemy.c
++++ b/src/p_enemy.c
+@@ -1069,6 +1069,61 @@ void A_KeenDie(mobj_t* mo)
+ // ACTION ROUTINES
+ //
+ 
++// LYMPHODOOM: own body cells (civilians) wander around and run from nearby
++// infection. They never attack; the threat is kept in actor->target.
++void A_CivWander(mobj_t *actor)
++{
++  mobj_t *threat;
++
++  if (--actor->threshold <= 0)
++  {
++    thinker_t *th;
++    fixed_t best = 384*FRACUNIT;
++    mobj_t *found = NULL;
++
++    actor->threshold = 6;
++    for (th = thinkercap.next; th != &thinkercap; th = th->next)
++    {
++      mobj_t *mo;
++      fixed_t d;
++
++      if (th->function != P_MobjThinker)
++        continue;
++      mo = (mobj_t *) th;
++      if (!(mo->flags & MF_COUNTKILL) || mo->health <= 0)
++        continue;
++      d = P_AproxDistance(mo->x - actor->x, mo->y - actor->y);
++      if (d < best && P_CheckSight(actor, mo))
++      {
++        best = d;
++        found = mo;
++      }
++    }
++    P_SetTarget(&actor->target, found);
++  }
++
++  threat = actor->target;
++  if (threat && threat->health > 0)
++  {
++    angle_t away = R_PointToAngle2(threat->x, threat->y, actor->x, actor->y);
++    actor->movedir = ((away + ANG45/2) >> 29) & 7;
++    if (!P_Move(actor, false))
++    {
++      actor->movedir = (actor->movedir + ((P_Random(pr_trywalk) & 1) ? 1 : 7)) & 7;
++      P_Move(actor, false);
++    }
++    else
++      P_Move(actor, false);   // running: twice the walking speed
++  }
++  else if (--actor->movecount < 0 || actor->movedir == DI_NODIR || !P_Move(actor, false))
++  {
++    actor->movedir = P_Random(pr_trywalk) & 7;
++    actor->movecount = 4 + (P_Random(pr_trywalk) & 15);
++  }
++  if (actor->movedir < 8)
++    actor->angle = (angle_t)actor->movedir << 29;
++}
++
+ //
+ // A_Look
+ // Stay in state until a player is sighted.
+diff --git a/src/p_enemy.h b/src/p_enemy.h
+index 5e60b91..322dda5 100644
+--- a/src/p_enemy.h
++++ b/src/p_enemy.h
+@@ -59,6 +59,7 @@ void A_PlayerScream(mobj_t *);
+ void A_Fall(mobj_t *);
+ void A_XScream(mobj_t *);
+ void A_Look(mobj_t *);
++void A_CivWander(mobj_t *); // LYMPHODOOM
+ void A_Chase(mobj_t *);
+ void A_FaceTarget(mobj_t *);
+ void A_PosAttack(mobj_t *);
+diff --git a/src/p_inter.c b/src/p_inter.c
+index dc53927..bc91e56 100644
+--- a/src/p_inter.c
++++ b/src/p_inter.c
+@@ -47,6 +47,7 @@
+ #include "g_game.h"
+ 
+ #include "p_inter.h"
++#include "lympho.h"
+ #include "p_enemy.h"
+ #include "hu_tracers.h"
+ 
+@@ -669,6 +670,8 @@ void P_TouchSpecialThing(mobj_t *special, mobj_t *toucher)
+ // killough 11/98: make static
+ static void P_KillMobj(mobj_t *source, mobj_t *target)
+ {
++  lympho_killed(target); // LYMPHODOOM: enemies heal the body, own cells hurt it
++
+   mobjtype_t item;
+   mobj_t     *mo;
+   dboolean   e6y = false;
+diff --git a/src/p_tick.c b/src/p_tick.c
+index dca4bbc..0d0a3d8 100644
+--- a/src/p_tick.c
++++ b/src/p_tick.c
+@@ -35,6 +35,7 @@
+ #include "p_user.h"
+ #include "p_spec.h"
+ #include "p_tick.h"
++#include "lympho.h"
+ #include "p_map.h"
+ #include "r_fps.h"
+ #include "e6y.h"
+@@ -282,6 +283,11 @@ void P_Ticker (void)
+         return;
+     }
+ 
++    // LYMPHODOOM: the infection drains the body; the world freezes when it dies
++    lympho_tick();
++    if (lympho_dead_tics)
++      return;
++
+     R_UpdateInterpolations ();
+ 
+     P_MapStart();
+diff --git a/src/st_stuff.c b/src/st_stuff.c
+index 658ccdf..80a42f9 100644
+--- a/src/st_stuff.c
++++ b/src/st_stuff.c
+@@ -920,6 +920,7 @@ static void ST_drawWidgets(dboolean refresh)
+   //e6y: moved to ST_refreshBackground() for correct single-pass stretching
+   //STlib_updateBinIcon(&w_armsbg, refresh);
+ 
++  if (deathmatch) // LYMPHODOOM: the arms panel shows BODY in single player
+   for (i=0;i<6;i++)
+     STlib_updateMultIcon(&w_arms[i], refresh);
+ 
 diff --git a/src/wi_stuff.c b/src/wi_stuff.c
-index 0dd96b9..4f78df9 100644
+index 0dd96b9..9ab962c 100644
 --- a/src/wi_stuff.c
 +++ b/src/wi_stuff.c
-@@ -180,9 +180,9 @@ static point_t lnodes[NUMEPISODES][NUMMAPS] =
+@@ -39,6 +39,7 @@
+ #include "r_main.h"
+ #include "v_video.h"
+ #include "wi_stuff.h"
++#include "lympho.h"
+ #include "s_sound.h"
+ #include "sounds.h"
+ #include "lprintf.h"  // jff 08/03/98 - declaration of lprintf
+@@ -180,9 +181,9 @@ static point_t lnodes[NUMEPISODES][NUMMAPS] =
  {
    // Episode 0 World Map
    {
@@ -483,7 +952,7 @@ index 0dd96b9..4f78df9 100644
      { 209, 102 }, // location of level 3 (CJ)
      { 116, 89 },  // location of level 4 (CJ)
      { 166, 55 },  // location of level 5 (CJ)
-@@ -263,7 +263,7 @@ static anim_t epsd2animinfo[] =
+@@ -263,7 +264,7 @@ static anim_t epsd2animinfo[] =
  
  static int NUMANIMS[NUMEPISODES] =
  {
@@ -492,7 +961,7 @@ index 0dd96b9..4f78df9 100644
    sizeof(epsd1animinfo)/sizeof(anim_t),
    sizeof(epsd2animinfo)/sizeof(anim_t)
  };
-@@ -417,7 +417,10 @@ static void WI_slamBackground(void)
+@@ -417,7 +418,10 @@ static void WI_slamBackground(void)
  {
    char  name[9];  // limited to 8 characters
  
@@ -504,3 +973,12 @@ index 0dd96b9..4f78df9 100644
    else if (exitpic) strcpy(name, exitpic);
    else if (gamemode == commercial || wbs->epsd < 0 || (gamemode == retail && wbs->epsd >= 3))
      strcpy(name, "INTERPIC");
+@@ -1920,6 +1924,8 @@ void WI_drawStats(void)
+   if (cnt_secret)
+     WI_drawPercent(320 - SP_STATSX, SP_STATSY+2*lh, cnt_secret[0]);
+ 
++  lympho_draw_score(SP_STATSX, SP_STATSY+3*lh); // LYMPHODOOM: the body's health
++
+   WI_drawTimeStats(cnt_time, cnt_total_time, cnt_par);
+ }
+ 

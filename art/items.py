@@ -444,6 +444,19 @@ def debris_pool():
     return {"A": Frame(s, 10.5, 5)}
 
 
+def civ_frames(fn):
+    """Own body cells (civilians): A/B wander (bob + blink), C hit flash, D-H burst."""
+    a = fn()
+    b = fn(blink=True)
+    fa = Frame(a, a.w / 2, a.h)
+    f = {"A": fa, "B": Frame(pad(b, 0, 1, 0, 0), b.w / 2, b.h + 1)}
+    f["C"] = Frame(flash(a), a.w / 2, a.h)
+    goo = (PEACH, PINK, WHITE)
+    for L, fr in zip("DEFGH", burst(fa, 5, seed=hash(fn.__name__) & 255, goo=goo)):
+        f[L] = fr
+    return f
+
+
 def all_items():
     W_ = {}
     W_["STIM"] = glucose_small()
@@ -483,11 +496,11 @@ def all_items():
     W_["IFOG"] = sparkle_fog(5, (WHITE, ORANGE))
     W_["BAR1"] = toxin_sac()
     W_["BEXP"] = toxin_explosion()
-    W_["COLU"] = stem_glow()
+    W_["COLU"] = civ_frames(cast.stem)
     W_["CAND"] = rbc()
-    W_["CBRA"] = civilian(cast.epithelial)
+    W_["CBRA"] = civ_frames(cast.epithelial)
     W_["ELEC"] = collagen()
-    W_["TLMP"] = civilian_anim(cast.granulocyte)
-    W_["TLP2"] = civilian_anim(cast.senescent)
+    W_["TLMP"] = civ_frames(cast.granulocyte)
+    W_["TLP2"] = civ_frames(cast.senescent)
     W_["POL5"] = debris_pool()
     return W_
