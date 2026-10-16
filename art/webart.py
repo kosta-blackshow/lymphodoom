@@ -224,3 +224,5 @@ if __name__ == "__main__":
     button("easy").save(out + "/btn_easy.png")
     button("hard").save(out + "/btn_hard.png")
     howto().save(out + "/howto.png")
+    import poster
+    poster.save(out + "/og.png")
