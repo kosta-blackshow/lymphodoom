@@ -57,6 +57,25 @@ The result is `web/game/`. Run it locally:
 and open http://localhost:8000/. To publish, copy `web/` without `page.template.html` to the
 server; `.htaccess` picks the language by domain and serves the `.gz` files.
 
+For page-only changes, the existing `web/game/` engine can be reused:
+
+    python3 art/webart.py web
+    python3 tools/page.py
+
+The second command also exports `web/title-score.json` from the same E1M1 composition as the
+game's MIDI. `web/title-music.js` plays it with a small chiptune synth while the poster and
+difficulty selection are visible; gameplay uses the engine's original instruments. Autoplay
+is attempted on opening the page and retried on the poster click if blocked by the browser.
+The music button controls the pre-game track. Starting the engine hides that button and stops
+the track when gameplay becomes visible. The page keeps the tab title `LYMPHODOOM` even when SDL
+sets its own window title.
+
+Checked on 2026-10-17 in headless Chrome: EN/easy and RU/hard both reach the game from the
+poster, tab title survives engine startup, pre-game music starts on interaction and stops at
+the handoff, and the narrow layout has no horizontal overflow. The WebAssembly engine and WAD
+are reused from the existing build; no engine or game-data changes are needed for this release.
+GPU performance, listening by ear and hosting configuration still need the owner's check.
+
 ## Layout
 
 | Path | What |

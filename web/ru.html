@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>LYMPHODOOM — Doom внутри человеческого тела</title>
+<title>LYMPHODOOM</title>
 <meta name="description" content="Doom в браузере: вы — Т-киллер и сражаетесь с вирусами, бактериями и раковыми клетками внутри тела человека.">
 <link rel="canonical" href="https://kostachernyshov.ru/lymphodoom/">
 <link rel="alternate" href="https://kostachernyshov.ru/lymphodoom/" hreflang="ru">
@@ -31,27 +31,23 @@
   --plum: #7e2553;
 }
 * { box-sizing: border-box; }
-html { background: var(--navy); }
+html { background: #200a14; }
 body {
   margin: 0;
   color: var(--white);
   font-family: "Helvetica Neue Site", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 17px;
   line-height: 1.5;
-  background-color: var(--navy);
-  background-image:
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 24px 24px;
+  background: radial-gradient(ellipse at 50% 25%, #72263e 0, #350e21 60%, #160810 100%);
   min-height: 100vh;
 }
 a { color: var(--peach); text-underline-offset: 3px; }
 a:hover { color: var(--white); }
 :focus-visible { outline: 3px solid var(--logo); outline-offset: 3px; }
 
-.wrap { max-width: 1040px; margin: 0 auto; padding: 24px 16px 56px; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 24px 16px 56px; }
 .top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-bottom: 18px; font-size: 15px; }
-.top a { color: var(--lav); }
+.top a { color: #dab7bd; }
 .top a:hover { color: var(--white); }
 
 /* the game screen is the hero: poster first, then the running game in the same frame */
@@ -60,22 +56,26 @@ a:hover { color: var(--white); }
   aspect-ratio: 16 / 10;
   width: 100%;
   background: #000;
-  border: 6px solid #000;
-  box-shadow: 0 0 0 3px var(--rim), 10px 10px 0 3px var(--plum);
+  border: 10px solid #100d14;
+  border-radius: 20px;
+  box-shadow: 0 0 0 3px #ad636d, 0 0 0 10px #320e20, 0 16px 24px #12070d, inset 0 0 25px #000;
   overflow: hidden;
 }
 .screen img, .screen canvas {
   display: block; width: 100%; height: 100%;
   image-rendering: pixelated; image-rendering: crisp-edges;
 }
+.screen .selection { display: none; }
+.screen.choosing .selection { display: block; }
 .screen canvas { display: none; object-fit: contain; background: #000; outline: none; }
-.screen.running img, .screen.running .start { display: none; }
+.screen.running img, .screen.running .start, .screen.running .splash { display: none; }
 .screen.running canvas { display: block; }
 .start {
   position: absolute; left: 50%; top: 23%; transform: translateX(-50%);
   width: 47%;
-  display: flex; flex-direction: column; align-items: center; gap: 4%;
+  display: none; flex-direction: column; align-items: center; gap: 12px;
 }
+.screen.choosing .start { display: flex; }
 button.skill {
   display: block; width: 100%; padding: 0; border: 0; background: none; cursor: pointer;
   box-shadow: 6px 6px 0 0 #000;
@@ -99,8 +99,41 @@ button.skill[disabled] { opacity: .5; cursor: progress; }
 
 .howto { display: block; width: 100%; height: auto; margin-top: 36px; image-rendering: pixelated; image-rendering: crisp-edges; box-shadow: 0 0 0 3px #000; }
 p { margin: 0 0 14px; max-width: 34em; }
-.fine { margin-top: 28px; font-size: 13px; color: var(--lav); max-width: none; }
-.fine a { color: var(--lav); }
+.fine { margin-top: 28px; font-size: 13px; color: #dab7bd; max-width: none; }
+.fine a { color: #dab7bd; }
+/* The page is the view into the cabinet: lit marquee, recessed CRT and control deck. */
+.cabinet { position: relative; padding: 0 clamp(18px, 5vw, 62px); border: 3px solid #a35968;
+  border-radius: 28px 28px 10px 10px; background: linear-gradient(90deg, #36101f, #8b354c 4%, #631f37 9%, #491427 50%, #631f37 91%, #9d4558 96%, #36101f);
+  box-shadow: 0 26px 70px #10050ccc, inset 0 0 0 6px #300c1c; }
+.marquee { margin: 18px -4px 26px; padding: 14px 8px; text-align: center; color: #ffdf94;
+  border: 5px solid #270d19; border-radius: 12px; background: linear-gradient(#311323, #140b15);
+  box-shadow: 0 0 0 2px #b77676, 0 0 24px #ffbd6226, inset 0 0 24px #ffb94c22;
+  font: 900 clamp(22px, 4vw, 44px)/1.1 monospace; letter-spacing: .14em; text-shadow: 0 0 16px #fdb65f80, 3px 3px #671e32; }
+.splash { position: absolute; inset: 0; width: 100%; padding: 0; border: 0; background: #070609; cursor: pointer; color: var(--white); }
+.screen .splash img { object-fit: contain; }
+.splash span { position: absolute; bottom: 3%; left: 0; width: 100%; text-align: center;
+  font: 600 clamp(12px, 1.7vw, 18px)/1.4 monospace; text-shadow: 0 2px 3px #000; }
+.splash:hover img, .splash:focus-visible img { filter: brightness(1.12); }
+.screen.choosing .splash { display: none; }
+.deck { height: 90px; margin: 24px -24px 0; border-top: 3px solid #bb7680; position: relative;
+  background: linear-gradient(#8c3c50, #4b172d 70%, #300d20); border-radius: 7px 7px 0 0; box-shadow: 0 -4px 10px #180913; }
+.deck::before { content: ''; position: absolute; left: 21%; top: 29px; width: 68px; height: 30px; border-radius: 50%; background: #1b111b; box-shadow: inset 0 3px 5px #000; }
+.stick { position: absolute; left: calc(21% + 26px); top: 5px; width: 14px; height: 43px; background: linear-gradient(90deg,#5b4d61,#d7bdc0,#5b4d61); transform: rotate(-12deg); }
+.stick::before { content: ''; position: absolute; width: 32px; height: 32px; left: -9px; top: -10px; border-radius: 50%; background: radial-gradient(circle at 35% 25%, #f8a3a0, #b42e4b 40%, #3e0d23 80%); box-shadow: 0 4px 4px #160a13; }
+.arcade-buttons { position: absolute; right: 17%; top: 22px; display: flex; gap: 16px; transform: rotate(-8deg); }
+.arcade-buttons i { width: 34px; height: 26px; border-radius: 50%; background: radial-gradient(ellipse at 40% 30%, #ffedab, #e8a64d 65%, #9d552e); border: 3px solid #2c1020; box-shadow: 0 5px #220e1b; }
+.arcade-buttons i:nth-child(2) { background: radial-gradient(ellipse at 40% 30%, #a3ffc0, #28b76c 65%, #12604a); }
+@media (max-width: 600px) {
+  .wrap { padding: 16px 10px 30px; }
+  .cabinet { padding: 0 14px; border-radius: 18px 18px 6px 6px; }
+  .marquee { margin: 14px 0 20px; }
+  .screen { border-width: 5px; border-radius: 10px; }
+  .deck { margin-left: -4px; margin-right: -4px; height: 75px; }
+  .start { gap: 5px; }
+  .status { font-size: 12px; }
+  .bar { width: 100%; }
+}
+[hidden] { display: none !important; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 <!-- Yandex.Metrika counter -->
@@ -122,8 +155,14 @@ p { margin: 0 0 14px; max-width: 34em; }
     <a href="https://kostachernyshov.com/lymphodoom/" hreflang="en" lang="en">In English</a>
   </nav>
 
+  <main class="cabinet">
+  <div class="marquee" aria-hidden="true">LYMPHODOOM</div>
   <div class="screen" id="screen">
-    <img src="start.png" width="320" height="200" alt="LYMPHODOOM. Управление: W A S D — движение, мышь — прицел и огонь, E или правая кнопка — открыть, 1–7 — оружие, Tab — карта.">
+    <img class="selection" src="start.png" width="320" height="200" alt="LYMPHODOOM. Управление: W A S D — движение, мышь — прицел и огонь, E или правая кнопка — открыть, 1–7 — оружие, Tab — карта.">
+    <button class="splash" id="splash" type="button" aria-label="Нажмите, чтобы играть">
+      <img src="og.png" width="1280" height="640" alt="LYMPHODOOM">
+      <span>Нажмите, чтобы играть</span>
+    </button>
     <canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
     <div class="start" id="start">
       <button class="skill" type="button" data-skill="2"><img src="btn_easy.png" width="150" height="26" alt="Играть: Common cold (легко)"></button>
@@ -132,8 +171,11 @@ p { margin: 0 0 14px; max-width: 34em; }
       <div class="status" id="status" role="status" aria-live="polite"></div>
     </div>
   </div>
+  <div class="deck" aria-hidden="true"><i class="stick"></i><div class="arcade-buttons"><i></i><i></i><i></i></div></div>
+  </main>
   <div class="mobile" id="mobile"><p>Для LYMPHODOOM нужны клавиатура и мышь. Откройте страницу на компьютере.</p><a href="#" id="anyway">Всё равно запустить</a></div>
   <div class="tools">
+    <button type="button" id="music" data-on="Включить музыку" data-off="Выключить музыку" aria-pressed="false">Включить музыку</button>
     <button type="button" id="fullscreen">На весь экран</button>
   </div>
 
@@ -142,6 +184,7 @@ p { margin: 0 0 14px; max-width: 34em; }
   <p class="fine">Движок: <a href="https://github.com/GMH-Code/Dwasm">Dwasm</a> (PrBoomX / PrBoom+), GNU GPL v2. Инструменты музыки: Freedoom (BSD). Игра не связана с id Software и ZeniMax. <a href="https://github.com/kosta-blackshow/lymphodoom">Исходный код</a>.</p>
 </div>
 
+<script src="title-music.js"></script>
 <script>
 (function () {
   var screen = document.getElementById('screen');
@@ -151,6 +194,15 @@ p { margin: 0 0 14px; max-width: 34em; }
   var bar = document.getElementById('bar');
   var start = document.getElementById('start');
   var T = {"loading": "Загрузка…", "preparing": "Запускаю движок…", "failed": "Файлы игры не загрузились. Проверьте соединение и выберите сложность ещё раз.", "crashed": "Движок остановился. Обновите страницу, чтобы играть снова."};
+  // SDL's window title is owned by the engine; the browser tab is owned by this page.
+  new MutationObserver(function () {
+    if (document.title !== 'LYMPHODOOM') document.title = 'LYMPHODOOM';
+  }).observe(document.querySelector('title'), {childList: true, characterData: true, subtree: true});
+  document.getElementById('splash').addEventListener('click', function () {
+    if (window.titleMusic) window.titleMusic.play();
+    screen.classList.add('choosing');
+    if (!document.body.classList.contains('touch')) skills[0].focus();
+  });
 
   var coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches && !matchMedia('(any-pointer: fine)').matches;
   if (coarse) document.body.classList.add('touch');
@@ -190,6 +242,7 @@ p { margin: 0 0 14px; max-width: 34em; }
       setStatus: setStatus,
       monitorRunDependencies: function () {},
       hideConsole: function () {
+        if (window.titleMusic) window.titleMusic.stop();
         screen.classList.add('running');
         canvas.focus();
       },
@@ -215,7 +268,7 @@ p { margin: 0 0 14px; max-width: 34em; }
   document.getElementById('fullscreen').addEventListener('click', function () {
     var el = screen;
     (el.requestFullscreen || el.webkitRequestFullscreen || function () {}).call(el);
-    if (!started) launch(2);
+
   });
   document.addEventListener('fullscreenchange', function () {
     screen.style.border = document.fullscreenElement ? '0' : '';

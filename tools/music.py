@@ -30,6 +30,7 @@ class Song:
     def __init__(self, bpm):
         self.bpm = bpm
         self.ev = []  # (tick, order, bytes)
+        self.notes = []  # (start tick, end tick, channel, pitch, velocity)
         self.programs = {}
 
     def program(self, ch, prog, vol=100, pan=64):
@@ -42,6 +43,7 @@ class Song:
         e = int(round((start + dur) * PPQ)) - 2
         self.ev.append((s, 2, bytes([0x90 | ch, pitch, vel])))
         self.ev.append((max(s + 1, e), 1, bytes([0x80 | ch, pitch, 0])))
+        self.notes.append((s, max(s + 1, e), ch, pitch, vel))
 
     def chord(self, ch, pitches, start, dur, vel=90):
         for p in pitches:
@@ -71,7 +73,7 @@ def power(root):
 
 # ---------------------------------------------------------------- E1M1: lymph node
 
-def lymph_node():
+def lymph_node_song():
     s = Song(150)
     s.program(0, 30, 92)       # distortion guitar
     s.program(1, 33, 110)      # electric bass (finger)
@@ -123,7 +125,20 @@ def lymph_node():
                 s.note(2, p, t, d * 0.95, 100)
                 s.note(3, p - 12 - 5, t, d * 0.95, 60)
                 t += d
-    return s.bytes(bars * 4)
+    return s
+
+
+def lymph_node():
+    return lymph_node_song().bytes(128)
+
+
+def web_score():
+    """The same E1M1 notes, in seconds, for the page's small Web Audio synth."""
+    s = lymph_node_song()
+    seconds = 60 / s.bpm / PPQ
+    notes = [[round(start * seconds, 4), round((end - start) * seconds, 4), channel, pitch, velocity]
+             for start, end, channel, pitch, velocity in s.notes]
+    return {"duration": 128 * 60 / s.bpm, "notes": sorted(notes)}
 
 
 # ---------------------------------------------------------------- E1M2: bloodstream

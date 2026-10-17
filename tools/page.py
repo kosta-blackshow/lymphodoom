@@ -1,12 +1,14 @@
 """Render the game page in English and Russian from web/page.template.html."""
 import json
 import os
+from music import web_score
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 REPO = "https://github.com/kosta-blackshow/lymphodoom"
 
 EN = {
-    "lang": "en", "title": "LYMPHODOOM — Doom inside the human body",
+    "lang": "en", "title": "LYMPHODOOM",
+    "enter": "Click to play", "sound_on": "Music on", "sound_off": "Music off",
     "description": "A browser Doom where you are a killer T cell fighting viruses, bacteria and cancer cells inside the human body.",
     "canonical": "https://kostachernyshov.com/lymphodoom/", "origin": "https://kostachernyshov.com",
     "home": "Kosta Chernyshov", "other_url": "https://kostachernyshov.ru/lymphodoom/", "other_lang": "ru",
@@ -28,7 +30,8 @@ EN = {
 }
 
 RU = {
-    "lang": "ru", "title": "LYMPHODOOM — Doom внутри человеческого тела",
+    "lang": "ru", "title": "LYMPHODOOM",
+    "enter": "Нажмите, чтобы играть", "sound_on": "Включить музыку", "sound_off": "Выключить музыку",
     "description": "Doom в браузере: вы — Т-киллер и сражаетесь с вирусами, бактериями и раковыми клетками внутри тела человека.",
     "canonical": "https://kostachernyshov.ru/lymphodoom/", "origin": "https://kostachernyshov.ru",
     "home": "Константин Чернышов", "other_url": "https://kostachernyshov.com/lymphodoom/", "other_lang": "en",
@@ -62,6 +65,8 @@ def render(d):
 
 
 if __name__ == "__main__":
+    with open(os.path.join(ROOT, "web", "title-score.json"), "w", encoding="utf-8") as f:
+        json.dump(web_score(), f, separators=(",", ":"))
     open(os.path.join(ROOT, "web", "index.html"), "w", encoding="utf-8").write(render(EN))
     open(os.path.join(ROOT, "web", "ru.html"), "w", encoding="utf-8").write(render(RU))
     print("ok")
